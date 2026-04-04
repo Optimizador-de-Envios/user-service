@@ -1,6 +1,7 @@
 package com.sofka.user_service.config.exception;
 
 import com.sofka.user_service.domain.exception.DuplicateUserEmailException;
+import com.sofka.user_service.domain.exception.InvalidCredentialsException;
 import com.sofka.user_service.domain.exception.InvalidUserDataException;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -22,6 +23,11 @@ public class GlobalExceptionHandler {
 	@ExceptionHandler(DuplicateUserEmailException.class)
 	public ResponseEntity<ApiErrorResponse> handleDuplicateUserEmailException(DuplicateUserEmailException exception) {
 		return ResponseEntity.status(HttpStatus.CONFLICT).body(new ApiErrorResponse(exception.getMessage(), List.of(exception.getMessage())));
+	}
+
+	@ExceptionHandler(InvalidCredentialsException.class)
+	public ResponseEntity<ApiErrorResponse> handleInvalidCredentialsException(InvalidCredentialsException exception) {
+		return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(new ApiErrorResponse(exception.getMessage(), List.of(exception.getMessage())));
 	}
 
 	@ExceptionHandler(MethodArgumentNotValidException.class)
