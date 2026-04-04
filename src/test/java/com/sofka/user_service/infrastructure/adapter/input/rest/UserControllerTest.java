@@ -7,9 +7,14 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import com.sofka.user_service.application.port.input.RegisterUserUseCase;
+import com.sofka.user_service.application.port.input.LoginUseCase;
 import com.sofka.user_service.application.usecase.RegisterUserCommand;
+import com.sofka.user_service.application.usecase.LoginCommand;
+import com.sofka.user_service.application.usecase.LoginResult;
+import com.sofka.user_service.application.usecase.LoginResultUser;
 import com.sofka.user_service.config.exception.GlobalExceptionHandler;
 import com.sofka.user_service.domain.exception.DuplicateUserEmailException;
+import com.sofka.user_service.domain.exception.InvalidCredentialsException;
 import com.sofka.user_service.domain.model.User;
 import com.sofka.user_service.domain.valueobject.UserEmail;
 import com.sofka.user_service.domain.valueobject.UserName;
@@ -32,6 +37,9 @@ class UserControllerTest {
 	@Mock
 	private RegisterUserUseCase registerUserUseCase;
 
+	@Mock
+	private LoginUseCase loginUseCase;
+
 	private MockMvc mockMvc;
 
 	private UserController userController;
@@ -42,11 +50,39 @@ class UserControllerTest {
 	void setUp() {
 		LocalValidatorFactoryBean validatorFactoryBean = new LocalValidatorFactoryBean();
 		validatorFactoryBean.afterPropertiesSet();
-		userController = new UserController(registerUserUseCase, userRestMapper);
+		userController = new UserController(registerUserUseCase, loginUseCase, userRestMapper);
 		mockMvc = MockMvcBuilders.standaloneSetup(userController)
 			.setControllerAdvice(globalExceptionHandler)
 			.setValidator(validatorFactoryBean)
 			.build();
+	}
+
+	@Test
+	void shouldLoginAndReturnTokenResponse() throws Exception {
+		LoginResult result = new LoginResult("jwt-token", "Bearer", 86400L, new LoginResultUser(UUID.fromString("c6f5dd0d-55d7-4e52-a1cf-7cf7c26f4d82"), "Juan Perez", "juan@example.com"));
+		when(loginUseCase.login(any(LoginCommand.class))).thenReturn(result);
+
+		mockMvc.perform(post("/api/users/login")
+				.contentType(MediaType.APPLICATION_JSON)
+				.content("{\"email\":\"juan@example.com\",\"password\":\"SecurePass123\"}"))
+			.andExpect(status().isOk())
+			.andExpect(jsonPath("$.accessToken").value("jwt-token"))
+			.andExpect(jsonPath("$.tokenType").value("Bearer"))
+			.andExpect(jsonPath("$.expiresIn").value(86400))
+			.andExpect(jsonPath("$.user.id").value("c6f5dd0d-55d7-4e52-a1cf-7cf7c26f4d82"))
+			.andExpect(jsonPath("$.user.name").value("Juan Perez"))
+			.andExpect(jsonPath("$.user.email").value("juan@example.com"));
+	}
+
+	@Test
+	void shouldReturnUnauthorizedWhenCredentialsAreInvalid() throws Exception {
+		when(loginUseCase.login(any(LoginCommand.class))).thenThrow(new InvalidCredentialsException("Invalid credentials"));
+
+		mockMvc.perform(post("/api/users/login")
+				.contentType(MediaType.APPLICATION_JSON)
+				.content("{\"email\":\"juan@example.com\",\"password\":\"wrong-password\"}"))
+			.andExpect(status().isUnauthorized())
+			.andExpect(jsonPath("$.message").value("Invalid credentials"));
 	}
 
 	@Test
