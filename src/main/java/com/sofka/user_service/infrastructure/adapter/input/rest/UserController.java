@@ -1,7 +1,11 @@
 package com.sofka.user_service.infrastructure.adapter.input.rest;
 
+import com.sofka.user_service.application.port.input.LoginUseCase;
 import com.sofka.user_service.application.port.input.RegisterUserUseCase;
+import com.sofka.user_service.application.usecase.LoginResult;
 import com.sofka.user_service.domain.model.User;
+import com.sofka.user_service.infrastructure.adapter.input.rest.dto.LoginRequest;
+import com.sofka.user_service.infrastructure.adapter.input.rest.dto.LoginResponse;
 import com.sofka.user_service.infrastructure.adapter.input.rest.dto.RegisterUserRequest;
 import com.sofka.user_service.infrastructure.adapter.input.rest.dto.UserResponse;
 import com.sofka.user_service.infrastructure.mapper.UserRestMapper;
@@ -19,11 +23,19 @@ import org.springframework.web.bind.annotation.RestController;
 public class UserController {
 
 	private final RegisterUserUseCase registerUserUseCase;
+	private final LoginUseCase loginUseCase;
 	private final UserRestMapper userRestMapper;
 
-	public UserController(RegisterUserUseCase registerUserUseCase, UserRestMapper userRestMapper) {
+	public UserController(RegisterUserUseCase registerUserUseCase, LoginUseCase loginUseCase, UserRestMapper userRestMapper) {
 		this.registerUserUseCase = Objects.requireNonNull(registerUserUseCase, "registerUserUseCase must not be null");
+		this.loginUseCase = Objects.requireNonNull(loginUseCase, "loginUseCase must not be null");
 		this.userRestMapper = Objects.requireNonNull(userRestMapper, "userRestMapper must not be null");
+	}
+
+	@PostMapping("/login")
+	public ResponseEntity<LoginResponse> login(@Valid @RequestBody LoginRequest request) {
+		LoginResult result = loginUseCase.login(userRestMapper.toCommand(request));
+		return ResponseEntity.ok(userRestMapper.toResponse(result));
 	}
 
 	@PostMapping("/register")
