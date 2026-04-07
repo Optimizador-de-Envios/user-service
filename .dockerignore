@@ -1,0 +1,44 @@
+# -- Control de versiones ------------------------------------------------------
+.git/
+.gitignore
+.gitattributes
+
+# -- Artefactos de build (se reconstruyen dentro de Docker) --------------------
+build/
+out/
+bin/
+*.jar
+*.war
+*.class
+
+# -- Cache de Gradle (no pertenece al contexto de imagen) ----------------------
+.gradle/
+
+# -- IDEs ----------------------------------------------------------------------
+.idea/
+*.iml
+*.ipr
+*.iws
+.vscode/
+*.swp
+
+# -- Reportes de tests ---------------------------------------------------------
+test-results/
+reports/
+
+# -- Configuracion local (nunca debe entrar a la imagen) -----------------------
+.env
+*.env
+application-local.properties
+
+# -- GitHub / CI ---------------------------------------------------------------
+.github/
+
+# -- Docker --------------------------------------------------------------------
+Dockerfile
+.dockerignore
+
+# -- Documentacion y SO --------------------------------------------------------
+*.md
+.DS_Store
+Thumbs.db
