@@ -3,7 +3,6 @@ package com.sofka.user_service.infrastructure.adapter.output.external;
 import com.sofka.user_service.application.port.output.JwtTokenIssuerPort;
 import java.nio.charset.StandardCharsets;
 import java.time.Clock;
-import java.time.Instant;
 import java.util.Base64;
 import java.util.UUID;
 import javax.crypto.Mac;
